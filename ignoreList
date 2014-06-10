@@ -1,0 +1,66 @@
+// ==UserScript==
+// @name          Followmy.tv Ignorelist
+// @description   Hides all comments of selected users.
+// @include       *followmy.tv/episodes/*
+// @include       *followmy.tv/shows/*
+// @include       *followmy.tv/u/*
+// @include       *followmy.tv/blog/*
+// ==/UserScript==
+
+//Settings:
+
+//List of all users whose comments you wish to hide:
+var users = ['Fairiestale','ExampleUser2'];
+
+//Select ignore mode:
+//full: fully remove the selected users from a page, will hide name, avatar, comment,...
+//text: only hide the comment text, but keep the user's name and avatar. Shows a button to reveal the hidden text.
+var ignoreMode = 'text';
+
+
+
+//Script:
+ignore();
+
+function ignore(){
+    //get all images from the comments section
+    var imgs = document.getElementById('comments').getElementsByTagName('img');
+    for( j=0; j< imgs.length; j++ ) {
+        //check if the image's user is on the user's ignore list
+        if (users.indexOf(imgs[j].alt) > - 1) {            
+            var parentDiv = imgs[j].parentNode.parentNode;    
+            
+            if(ignoreMode == 'full'){
+                //hide everything mode - removes the entire comment
+                parentDiv.style.display = 'none';   
+            } else {
+                //hide text mode - removes text and adds button to reveal hidden text
+                var elems = parentDiv.getElementsByTagName('*'), i;            
+                for (i in elems) {      
+                    //edit all divs with class 'msg' (=comment text)
+                    if((' ' + elems[i].className + ' ').indexOf(' msg ') > -1) {     
+                        var originalText = elems[i].innerHTML;
+                        var newText = "<i>Comment hidden because this user is on your ignore list. </i>"
+                        var divContainer = elems[i];
+                        var btnReveal = document.createElement('a');
+                        btnReveal.innerHTML = "<a style='color: #237DA1;'>Click here to reveal.</a>";
+                        btnReveal.addEventListener("click",makeClickHandler(divContainer,originalText),false);
+                        
+                        elems[i].innerHTML = newText;
+                        elems[i].style.padding = "0px 0px 11px 0px";
+                        elems[i].appendChild(btnReveal);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*Returns the function to reveal the hidden text*/
+function makeClickHandler(container,content) {
+    return function reveal(){
+        container.style.padding = "0px 0px 0px 0px";
+        container.innerHTML = content;                        
+    };
+}
+
